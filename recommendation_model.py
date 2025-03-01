@@ -77,11 +77,21 @@ class GenerateLearningPathIndexEmbeddings:
             print(f' -- Saved the newly created FAISS vector store at "{faiss_vectorstore_foldername}".')
         else:
             print(f' -- Found existing FAISS vector store at "{faiss_vectorstore_foldername}", loading from cache.')
-        self.faiss_vectorstore = FAISS.load_local(
-            faiss_vectorstore_foldername, 
-            self.gemini_embeddings,
-            allow_dangerous_deserialization=True
-        )
+        
+        # Try to load the FAISS index with the parameter, if it fails, try without it
+        try:
+            self.faiss_vectorstore = FAISS.load_local(
+                faiss_vectorstore_foldername, 
+                self.gemini_embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except TypeError:
+            # If the above fails due to the parameter not being supported, try without it
+            print(' -- Parameter allow_dangerous_deserialization not supported, loading without it.')
+            self.faiss_vectorstore = FAISS.load_local(
+                faiss_vectorstore_foldername, 
+                self.gemini_embeddings
+            )
 
     def get_faiss_vector_store(self):
         return self.faiss_vectorstore
