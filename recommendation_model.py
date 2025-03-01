@@ -157,6 +157,7 @@ class GenAILearningPathIndex:
             )
             
             # Make sure we're using the chain correctly
+            response = qa.invoke({"query": query})
             return qa.invoke(query)["result"] if isinstance(qa.invoke(query), dict) else qa.invoke(query)
         except Exception as e:
             return f"Error querying the model: {str(e)}"
