@@ -30,9 +30,6 @@ class GeminiEmbeddings(Embeddings):
         # Replace with actual Gemini API call for query embeddings
         return [-1.0] * 512  # Return dummy embedding of correct shape
 
-    def embed_query_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self.embed_query(text) for text in texts]
-
 class GenerateLearningPathIndexEmbeddings:
     def __init__(self, csv_filename="one.csv"):
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -150,13 +147,17 @@ class GenAILearningPathIndex:
 
     def get_response_for(self, query: str):
         try:
+            # Fix for the fields_set error - Use from_chain_type with correct parameters
             qa = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
                 retriever=self.faiss_vectorstore.as_retriever(),
-                chain_type_kwargs=self.chain_type_kwargs
+                chain_type_kwargs=self.chain_type_kwargs,
+                return_source_documents=False  # Add this parameter explicitly
             )
-            return qa.run(query)
+            
+            # Make sure we're using the chain correctly
+            return qa.invoke(query)["result"] if isinstance(qa.invoke(query), dict) else qa.invoke(query)
         except Exception as e:
             return f"Error querying the model: {str(e)}"
 
