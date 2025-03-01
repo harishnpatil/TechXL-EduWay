@@ -126,8 +126,7 @@ class GenAILearningPathIndex:
             Question: {question}
             """
         )
-        PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-        self.chain_type_kwargs = {"prompt": PROMPT}
+        self.PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
         
         # Updated to use the current Gemini model name
         try:
@@ -147,19 +146,31 @@ class GenAILearningPathIndex:
 
     def get_response_for(self, query: str):
         try:
-            # Fix for the fields_set error - Use from_chain_type with correct parameters
+            # Create a retriever from the vector store
+            retriever = self.faiss_vectorstore.as_retriever()
+            
+            # Create the QA chain using the updated approach for newer LangChain versions
             qa = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
-                retriever=self.faiss_vectorstore.as_retriever(),
-                chain_type_kwargs=self.chain_type_kwargs,
-                return_source_documents=False  # Add this parameter explicitly
+                retriever=retriever,
+                return_source_documents=False,
+                chain_type_kwargs={"prompt": self.PROMPT}
             )
             
-            # Make sure we're using the chain correctly
-            response = qa.invoke({"query": query})
-            return qa.invoke(query)["result"] if isinstance(qa.invoke(query), dict) else qa.invoke(query)
+            # Execute the query properly - this is the fixed part
+            result = qa.invoke({"query": query})
+            
+            # Handle different response formats from various LangChain versions
+            if isinstance(result, dict) and "result" in result:
+                return result["result"]
+            elif isinstance(result, str):
+                return result
+            else:
+                return str(result)
+                
         except Exception as e:
+            print(f"Error in query processing: {str(e)}")
             return f"Error querying the model: {str(e)}"
 
 def generate_learning_path(query, csv_filename="one.csv"):
@@ -168,4 +179,7 @@ def generate_learning_path(query, csv_filename="one.csv"):
         genAIproject = GenAILearningPathIndex(faiss_vectorstore)
         return genAIproject.get_response_for(query)
     except Exception as e:
+        import traceback
+        print(f"Error generating learning path: {str(e)}")
+        print(traceback.format_exc())
         return f"Error generating learning path: {str(e)}"
