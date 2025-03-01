@@ -1,0 +1,28 @@
+Learning Pathway,Duration,Link,Module,Domain
+HTML & CSS Basics,2 weeks,https://example.com/html-css,Web Development,Web Development
+Responsive Web Design,2 weeks,https://example.com/responsive-web,Frontend Web,Web Development
+React Fundamentals,4 weeks,https://example.com/react,Frontend Web,Web Development
+Node.js & Express,4 weeks,https://example.com/nodejs,Backend Web,Web Development
+Full Stack Development,6 weeks,https://example.com/full-stack,Web Development,Web Development
+ Python & Math for ML,2 weeks,https://cs50.harvard.edu/python/2022/   ,ML Foundation,Machine Learning
+Data Preprocessing & EDA,2 weeks,https://olympus.mygreatlearning.com/courses/10899?show_payment_popup=true,ML Foundation,Machine Learning
+Supervised Learning Basics,3-4 Weeks,https://www.mygreatlearning.com/academy/learn-for-free/courses/introduction-to-machine-learning1,Machine Learning,Machine Learning
+Unsupervised Learning,2-3 Weeks,https://www.mygreatlearning.com/academy/learn-for-free/courses/deep-learning-with-python,Machine Learning,Machine Learning
+Advanced ML & Optimization,3 Weeks ,https://cs50.harvard.edu/python/2022/         ,Machine Learning,Machine Learning
+Deployment & ML Ops,2 Weeks,abc,Machine Learning ,Machine Learning
+Real-World Projects & Case Studies,1 Week,abc,Machine Learning,Machine Learning
+Neural Networks & Deep Learning,4 weeks,https://example.com/mlops,Machine Learning,Machine Learning
+Linux Fundamentals,2 weeks,https://example.com/linux,DevOps Foundation,DevOps
+Git & GitHub,2 weeks,https://example.com/git-github,DevOps Foundation,DevOps
+Docker,3 weeks,https://example.com/docker,DevOps,DevOps
+Kubernetes,4 weeks,https://example.com/kubernetes,DevOps,DevOps
+Jenkins & CI/CD,3 weeks,https://example.com/jenkins,DevOps,DevOps
+Network Security,4 weeks,https://example.com/network-security,Cybersecurity,Cybersecurity
+Application Security,4 weeks,https://example.com/app-security,Cybersecurity,Cybersecurity
+Ethical Hacking,6 weeks,https://example.com/ethical-hacking,Cybersecurity,Cybersecurity
+Security Operations,5 weeks,https://example.com/security-ops,Cybersecurity,Cybersecurity
+Cryptography,3 weeks,https://example.com/cryptography,Cybersecurity,Cybersecurity
+AWS Fundamentals,4 weeks,https://example.com/aws,Cloud Computing,Cloud Computing
+Azure Fundamentals,4 weeks,https://example.com/azure,Cloud Computing,Cloud Computing
+GCP Fundamentals,4 weeks,https://example.com/gcp,Cloud Computing,Cloud Computing
+Cloud Architecture,6 weeks,https://example.com/cloud-architecture,Cloud Computing,Cloud Computing
