@@ -4,38 +4,45 @@ import json
 import os
 import re
 from datetime import datetime
-from recommendation_model import generate_learning_path, GenerateLearningPathIndexEmbeddings  # Import the class
+from recommendation_model import generate_learning_path, GenerateLearningPathIndexEmbeddings
 
 # Function to check and update the FAISS index
 def update_faiss_index(csv_filename):
-    faiss_vectorstore_foldername = "faiss_learning_path_index"
-    csv_last_modified = datetime.fromtimestamp(os.path.getmtime(csv_filename))
-    index_last_modified = None
-    if os.path.exists(faiss_vectorstore_foldername):
-        index_last_modified = datetime.fromtimestamp(os.path.getmtime(faiss_vectorstore_foldername))
-    if not os.path.exists(faiss_vectorstore_foldername) or csv_last_modified > index_last_modified:
-        print(' -- Creating a new FAISS vector store from chunked text and Gemini embeddings.')
-        GenerateLearningPathIndexEmbeddings(csv_filename)
-        print(f' -- Saved the newly created FAISS vector store at "{faiss_vectorstore_foldername}".')
-    else:
-        print(f' -- Found existing FAISS vector store at "{faiss_vectorstore_foldername}", loading from cache.')
+    try:
+        faiss_vectorstore_foldername = "faiss_learning_path_index"
+        csv_last_modified = datetime.fromtimestamp(os.path.getmtime(csv_filename))
+        index_last_modified = None
+        if os.path.exists(faiss_vectorstore_foldername):
+            index_last_modified = datetime.fromtimestamp(os.path.getmtime(faiss_vectorstore_foldername))
+        if not os.path.exists(faiss_vectorstore_foldername) or csv_last_modified > index_last_modified:
+            print(' -- Creating a new FAISS vector store from chunked text and Gemini embeddings.')
+            GenerateLearningPathIndexEmbeddings(csv_filename)
+            print(f' -- Saved the newly created FAISS vector store at "{faiss_vectorstore_foldername}".')
+        else:
+            print(f' -- Found existing FAISS vector store at "{faiss_vectorstore_foldername}", loading from cache.')
+    except Exception as e:
+        st.error(f"Error updating FAISS index: {str(e)}")
 
 # Function to split response into introduction and table
 def process_recommendation(recommendation_text):
-    # Look for the table marker
-    table_pattern = r'\|\s*Learning Pathway\s*\|\s*duration\s*\|\s*link\s*\|\s*Module\s*\|'
-    
-    # Check if the pattern exists in the text
-    if re.search(table_pattern, recommendation_text):
-        # Split the text at the table marker
-        parts = re.split(table_pattern, recommendation_text, 1)
+    try:
+        # Look for the table marker
+        table_pattern = r'\|\s*Learning Pathway\s*\|\s*duration\s*\|\s*link\s*\|\s*Module\s*\|'
         
-        path_introduction = parts[0].strip()
-        path_content = '| Learning Pathway | duration | link | Module |\n' + parts[1].strip()
-        
-        return path_introduction, path_content
-    else:
-        # If table format isn't found, return the whole text as introduction
+        # Check if the pattern exists in the text
+        if re.search(table_pattern, recommendation_text):
+            # Split the text at the table marker
+            parts = re.split(table_pattern, recommendation_text, 1)
+            
+            path_introduction = parts[0].strip()
+            path_content = '| Learning Pathway | duration | link | Module |\n' + parts[1].strip()
+            
+            return path_introduction, path_content
+        else:
+            # If table format isn't found, return the whole text as introduction
+            return recommendation_text, ""
+    except Exception as e:
+        st.error(f"Error processing recommendation: {str(e)}")
         return recommendation_text, ""
 
 # Set the title of the app with improved styling
@@ -194,9 +201,6 @@ st.markdown('<div class="info-box">To get started, please provide some informati
 # Define the CSV file path
 csv_filename = "one.csv"
 
-# Update the FAISS index if necessary
-update_faiss_index(csv_filename)
-
 # Initialize session state variables if they don't exist
 if 'show_regenerate' not in st.session_state:
     st.session_state.show_regenerate = False
@@ -268,17 +272,23 @@ with tab1:
                     "query": format_query()
                 }
                 
-                # Generate recommendations and store in session state
-                with st.spinner("Generating your personalized learning path..."):
-                    recommendations = generate_learning_path(format_query())
-                    path_introduction, path_content = process_recommendation(recommendations)
+                # Update FAISS index before generating recommendations
+                try:
+                    update_faiss_index(csv_filename)
                     
-                    st.session_state.path_introduction = path_introduction
-                    st.session_state.path_content = path_content
-                    st.session_state.show_regenerate = True
-                
-                # Show a success message and instruct to go to the next tab
-                st.success("Your learning path has been generated successfully! Please go to the 'View Learning Path' tab to see your results.")
+                    # Generate recommendations and store in session state
+                    with st.spinner("Generating your personalized learning path..."):
+                        recommendations = generate_learning_path(format_query())
+                        path_introduction, path_content = process_recommendation(recommendations)
+                        
+                        st.session_state.path_introduction = path_introduction
+                        st.session_state.path_content = path_content
+                        st.session_state.show_regenerate = True
+                    
+                    # Show a success message and instruct to go to the next tab
+                    st.success("Your learning path has been generated successfully! Please go to the 'View Learning Path' tab to see your results.")
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
 
 with tab2:
     st.markdown('<div class="sub-header">Your Personalized Learning Path</div>', unsafe_allow_html=True)
@@ -339,19 +349,22 @@ with tab2:
                         
                         # Generate new recommendations
                         with st.spinner("Regenerating your personalized learning path..."):
-                            new_recommendations = generate_learning_path(updated_query)
-                            new_path_introduction, new_path_content = process_recommendation(new_recommendations)
-                            
-                            # Update session state
-                            st.session_state.path_introduction = new_path_introduction
-                            st.session_state.path_content = new_path_content
-                            st.session_state.regenerate_expanded = False
-                            
-                            # Store the updated query
-                            st.session_state.user_info["query"] = updated_query
-                            
-                            st.success("Your learning path has been updated successfully!")
-                            st.experimental_rerun()
+                            try:
+                                new_recommendations = generate_learning_path(updated_query)
+                                new_path_introduction, new_path_content = process_recommendation(new_recommendations)
+                                
+                                # Update session state
+                                st.session_state.path_introduction = new_path_introduction
+                                st.session_state.path_content = new_path_content
+                                st.session_state.regenerate_expanded = False
+                                
+                                # Store the updated query
+                                st.session_state.user_info["query"] = updated_query
+                                
+                                st.success("Your learning path has been updated successfully!")
+                                st.experimental_rerun()
+                            except Exception as e:
+                                st.error(f"Error regenerating learning path: {str(e)}")
             
             st.markdown('</div>', unsafe_allow_html=True)
         
